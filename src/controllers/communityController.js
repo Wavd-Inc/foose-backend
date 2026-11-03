@@ -8,6 +8,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const httpError = require("../utils/httpError");
 const { success } = require("../utils/apiResponse");
 const { withCache, invalidate, invalidatePattern } = require("../utils/cache");
+const { eventDiscoveryFilter, nextWeekendRange, normalizeEventDiscoveryFilter } = require("../utils/eventDiscoveryFilters");
 const { RECOMMENDATION_SIGNALS } = require("../constants/recommendations");
 const {
   awardFinspoSignal,
@@ -313,8 +314,13 @@ const ownedManageEventQuery = (eventId, userId) =>
 exports.listEvents = asyncHandler(async (req, res) => {
   await revokePastEventPromotions();
   const { page, limit, skip } = pageOptions(req.query);
-  const data = await withCache(`events:feed:${page}:${limit}`, 120, async () => {
-    const filter = upcomingEventFilter();
+  const selectedFilter = normalizeEventDiscoveryFilter(req.query.filter);
+  const now = new Date();
+  const cacheFilter = selectedFilter === "weekend"
+    ? `weekend:${nextWeekendRange(now).start.toISOString().slice(0, 10)}`
+    : selectedFilter;
+  const data = await withCache(`events:feed:${cacheFilter}:${page}:${limit}`, 120, async () => {
+    const filter = eventDiscoveryFilter(upcomingEventFilter(), selectedFilter, now);
     const [events, total] = await Promise.all([
       Event.find(filter)
         .populate(EVENT_PUBLIC_POPULATE)
