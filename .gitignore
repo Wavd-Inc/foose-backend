@@ -12,3 +12,4 @@ uploads
 !.elasticbeanstalk/*.global.yml
 
 AGENTS.md
+
