@@ -20,14 +20,26 @@ const findMongod = () => {
     return process.env.LOCAL_MONGOD_PATH;
   }
 
+  const executableName = process.platform === "win32" ? "mongod.exe" : "mongod";
+  for (const directory of (process.env.PATH || "").split(path.delimiter)) {
+    if (!directory) continue;
+    const executable = path.resolve(directory, executableName);
+    try {
+      fs.accessSync(executable, fs.constants.X_OK);
+      if (fs.statSync(executable).isFile()) return executable;
+    } catch {
+      // Keep searching when a PATH entry does not contain an executable.
+    }
+  }
+
   const serverRoot = "C:\\Program Files\\MongoDB\\Server";
-  const versions = fs
+  const versions = process.platform === "win32" && fs.existsSync(serverRoot) ? fs
     .readdirSync(serverRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort((left, right) =>
       right.localeCompare(left, undefined, { numeric: true }),
-    );
+    ) : [];
 
   for (const version of versions) {
     const executable = path.join(serverRoot, version, "bin", "mongod.exe");
@@ -35,7 +47,7 @@ const findMongod = () => {
   }
 
   throw new Error(
-    "mongod.exe was not found. Set LOCAL_MONGOD_PATH to its full path.",
+    "mongod was not found. Install MongoDB and add it to PATH, or set LOCAL_MONGOD_PATH to its full path.",
   );
 };
 
