@@ -11,7 +11,10 @@ const firstFileUrl = (req, fieldName) => {
 };
 
 const submissionPayload = (req, existingKyc) => {
-  const idImgUrl = firstFileUrl(req, "idImg") || existingKyc?.idImgUrl;
+  const sameType = existingKyc?.idType === req.body.idType;
+  const idImgUrl = firstFileUrl(req, "idImg") || (sameType && existingKyc?.idImgUrl);
+  const idBackImgUrl = req.body.idType === "Passport" ? "" : firstFileUrl(req, "idBackImg") || (sameType && existingKyc?.idBackImgUrl);
+  if (req.body.idType !== "Passport" && !idBackImgUrl) throw httpError(422, "Upload the back of your ID.");
   const selfieImgUrl = firstFileUrl(req, "selfie") || existingKyc?.selfieImgUrl;
   const phone = normalizePhone(req.body.phone || existingKyc?.phone || "");
 
@@ -31,6 +34,7 @@ const submissionPayload = (req, existingKyc) => {
     phoneOtpRequestedAt: undefined,
     phoneOtpVerifiedAt: undefined,
     idImgUrl,
+    idBackImgUrl,
     selfieImgUrl,
     status: "pending",
     rejectionReason: "",

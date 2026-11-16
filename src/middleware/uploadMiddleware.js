@@ -189,6 +189,7 @@ const finspoImages = [
 const kycDocuments = [
   upload(10).fields([
     { name: "idImg", maxCount: 1 },
+    { name: "idBackImg", maxCount: 1 },
     { name: "selfie", maxCount: 1 },
   ]),
   uploadToS3("kyc"),
