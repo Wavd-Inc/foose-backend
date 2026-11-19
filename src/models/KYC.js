@@ -38,6 +38,7 @@ const kycSchema = new Schema(
       type: String,
       required: true,
     },
+    idBackImgUrl: { type: String },
     selfieImgUrl: {
       type: String,
       required: true,

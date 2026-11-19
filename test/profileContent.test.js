@@ -67,7 +67,7 @@ test("profile summary returns counts and the viewer follow state without private
     userExists: User.exists,
     userFindOne: User.findOne,
   };
-  const user = { _id: "user-1", following: ["followed-1"], name: "Ama", username: "ama" };
+  const user = { _id: "user-1", following: ["followed-1", "viewer-1"], name: "Ama", username: "ama" };
   const shop = { _id: "shop-1", shopName: "Ama Shop", slug: "ama-shop" };
   User.findOne = () => query(user);
   DigiShop.findOne = () => query(shop);
@@ -83,6 +83,12 @@ test("profile summary returns counts and the viewer follow state without private
     assert.equal(payload.data.followerCount, 9);
     assert.equal(payload.data.followingCount, 9);
     assert.equal(payload.data.isFollowing, true);
+    assert.equal(payload.data.followsYou, true);
+    user.following = [];
+    const stranger = await invokeController(userController.getProfileByUsername, { params: { username: "ama" }, user: { id: "viewer-1" } });
+    assert.equal(stranger.payload.data.followsYou, false);
+    const guest = await invokeController(userController.getProfileByUsername, { params: { username: "ama" } });
+    assert.equal(guest.payload.data.followsYou, false);
     assert.equal(payload.data.shop, shop);
     for (const removed of ["activeOrders", "events", "gallery", "listings"]) {
       assert.equal(Object.hasOwn(payload.data, removed), false);

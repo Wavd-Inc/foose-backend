@@ -117,6 +117,7 @@ const profileForUser = async (user, options = {}) => {
     followerCount,
     followingCount,
     isFollowing: Boolean(followingRecord),
+    followsYou: Boolean(viewerId && (user.following || []).some((id) => String(id) === String(viewerId))),
     shop,
   };
 };
