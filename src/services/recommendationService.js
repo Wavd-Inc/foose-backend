@@ -29,7 +29,7 @@ const {
 } = require("../utils/recommendationFeed");
 
 const LISTING_POPULATE_FIELDS = "shopName slug rating totalReviews ownerId location";
-const FINSPO_ACCOUNT_FIELDS = "name username bio profilePhoto isKycVerified hasShop";
+const FINSPO_ACCOUNT_FIELDS = "name username bio profilePhoto isKycVerified hasShop following";
 const ACTIVE_ACCOUNT_FILTER = {
   $or: [{ accountStatus: "active" }, { accountStatus: { $exists: false } }],
 };
@@ -406,6 +406,7 @@ const buildFinspoAccountSuggestions = async ({ excludedUserIds = [], userId }) =
       _id: user._id,
       bio: user.bio || "",
       finspoCount: Number(finspoCount) || 0,
+      followsYou: Boolean(userId && (user.following || []).some((id) => idValue(id) === idValue(userId))),
       hasShop: Boolean(user.hasShop),
       isKycVerified: Boolean(user.isKycVerified),
       name: user.name,
